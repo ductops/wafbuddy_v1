@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WAF Use Case Curl Generator &amp; Investigator</title>
+<style>
+:root{
+  --bg:#f6f8fb;--panel:#fff;--ink:#142033;--muted:#64748b;--line:#dbe3ee;
+  --blue:#2563eb;--blue2:#eff6ff;--green:#15803d;--green2:#f0fdf4;
+  --amber:#b45309;--amber2:#fffbeb;--red:#b91c1c;--red2:#fef2f2;--violet:#6d28d9;--violet2:#f5f3ff;
+  --shadow:0 12px 34px rgba(15,23,42,.08);--radius:16px;
+}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+button,input,select,textarea{font:inherit} button{cursor:pointer}
+header{background:linear-gradient(135deg,#0f172a,#1d4ed8);color:white;padding:28px 28px 22px}
+.header-inner{max-width:1500px;margin:auto}.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.14em;opacity:.78}
+h1{margin:7px 0 8px;font-size:clamp(27px,4vw,46px);line-height:1.05}.subtitle{max-width:1000px;color:#dbeafe;line-height:1.55}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.badge{border:1px solid rgba(255,255,255,.25);padding:6px 10px;border-radius:999px;font-size:12px;background:rgba(255,255,255,.08)}
+main{max-width:1500px;margin:22px auto;padding:0 20px 42px}.grid{display:grid;grid-template-columns:350px 1fr;gap:18px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.panel-head{padding:18px 18px 12px;border-bottom:1px solid var(--line)}
+.panel-body{padding:18px}.panel h2,.panel h3{margin:0}.hint{color:var(--muted);font-size:13px;line-height:1.45;margin-top:5px}
+label{display:block;font-weight:700;font-size:13px;margin:12px 0 6px}.field{width:100%;padding:10px 11px;border:1px solid #cbd5e1;border-radius:10px;background:white;color:var(--ink)}
+textarea.field{min-height:82px;resize:vertical}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.nav{display:flex;flex-direction:column;gap:7px;max-height:690px;overflow:auto;padding-right:3px}.nav button{border:1px solid var(--line);background:white;border-radius:11px;text-align:left;padding:10px 11px;color:var(--ink)}
+.nav button:hover{border-color:#93c5fd}.nav button.active{background:var(--blue2);border-color:#93c5fd;color:#1d4ed8;font-weight:800}
+.cat{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:900;margin:13px 3px 3px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:13px 0}.btn{border:0;border-radius:10px;padding:9px 12px;font-weight:800}.btn-primary{background:var(--blue);color:white}.btn-soft{background:#eef2f7;color:#334155}.btn-good{background:#dcfce7;color:#166534}.btn-warn{background:#fef3c7;color:#92400e}
+.hero-card{border:1px solid #bfdbfe;background:linear-gradient(135deg,#eff6ff,#fff);border-radius:14px;padding:16px;margin-bottom:14px}.hero-card h2{font-size:23px;margin-bottom:5px}
+.callout{border-radius:12px;padding:12px 13px;margin:10px 0;line-height:1.45;font-size:13px;border:1px solid}.info{background:var(--blue2);border-color:#bfdbfe}.good{background:var(--green2);border-color:#bbf7d0}.warn{background:var(--amber2);border-color:#fde68a}.bad{background:var(--red2);border-color:#fecaca}.violet{background:var(--violet2);border-color:#ddd6fe}
+.section-title{font-size:15px;font-weight:900;margin:18px 0 8px}.cmd-card{border:1px solid var(--line);border-radius:13px;overflow:hidden;margin:10px 0}.cmd-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 11px;background:#f8fafc;border-bottom:1px solid var(--line)}
+.cmd-top strong{font-size:13px}.copy{border:1px solid #cbd5e1;background:white;border-radius:8px;padding:5px 8px;font-size:12px;font-weight:800}
+pre{margin:0;padding:14px;white-space:pre-wrap;overflow-wrap:anywhere;background:#0f172a;color:#e2e8f0;font:12.5px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+.interpret{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.mini{border:1px solid var(--line);border-radius:12px;padding:12px}.mini h4{margin:0 0 6px;font-size:13px}.mini p{margin:0;color:#475569;font-size:12.5px;line-height:1.45}
+.decision{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.step{border:1px solid var(--line);border-radius:12px;padding:12px;background:white}.step .n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:999px;background:#dbeafe;color:#1d4ed8;font-size:12px;font-weight:900}
+.step strong{display:block;margin:7px 0 4px}.step span{color:var(--muted);font-size:12px;line-height:1.4}
+details{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0}summary{font-weight:800;cursor:pointer}.small{font-size:12px;color:var(--muted);line-height:1.5}
+footer{max-width:1500px;margin:0 auto 34px;padding:0 20px;color:#64748b;font-size:12px}
+@media(max-width:1000px){.grid{grid-template-columns:1fr}.nav{max-height:330px}.decision{grid-template-columns:1fr 1fr}.interpret{grid-template-columns:1fr}.row,.row3{grid-template-columns:1fr}}
+@media(max-width:600px){header{padding:22px 18px}main{padding:0 12px}.decision{grid-template-columns:1fr}}
+
+/* v1.1 sticky control-center enhancement */
+.control-center{
+  position:sticky;
+  top:0;
+  z-index:40;
+  margin-bottom:18px;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:rgba(255,255,255,.97);
+  backdrop-filter:blur(14px);
+  box-shadow:0 14px 36px rgba(15,23,42,.12);
+  overflow:hidden;
+}
+.control-center .cc-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 15px;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(90deg,#f8fafc,#eff6ff);
+}
+.control-center .cc-title-wrap{min-width:0}
+.control-center .cc-title{
+  font-size:15px;
+  font-weight:900;
+  margin:0;
+}
+.control-center .cc-sub{
+  color:var(--muted);
+  font-size:12px;
+  margin-top:2px;
+}
+.control-center .cc-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  flex-shrink:0;
+}
+.control-center .cc-body{
+  padding:13px 15px 15px;
+}
+.control-center.collapsed .cc-body{display:none}
+.control-grid{
+  display:grid;
+  grid-template-columns:1.35fr 1.2fr .55fr 1.45fr;
+  gap:10px 12px;
+  align-items:end;
+}
+.control-grid .span2{grid-column:span 2}
+.control-grid .span4{grid-column:1/-1}
+.control-grid label{margin:0 0 5px}
+.control-grid textarea.field{min-height:58px}
+.control-inline-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.mini-note{
+  font-size:11.5px;
+  color:var(--muted);
+  line-height:1.35;
+}
+.jumpbar{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  padding:10px 12px;
+  border-top:1px solid var(--line);
+  background:#fbfdff;
+}
+.jumpbar button{
+  border:1px solid var(--line);
+  background:white;
+  border-radius:999px;
+  padding:6px 9px;
+  font-size:11.5px;
+  font-weight:800;
+  color:#334155;
+}
+.jumpbar button:hover{border-color:#93c5fd;color:#1d4ed8}
+.grid{grid-template-columns:300px 1fr}
+.aside-inputs-removed{display:none!important}
+@media(max-width:1150px){
+  .control-grid{grid-template-columns:1fr 1fr}
+  .control-grid .span4{grid-column:1/-1}
+  .control-grid .span2{grid-column:span 1}
+}
+@media(max-width:760px){
+  .control-center{top:0;border-radius:0;margin-left:-12px;margin-right:-12px}
+  .control-grid{grid-template-columns:1fr}
+  .control-grid .span2,.control-grid .span4{grid-column:1}
+  .cc-sub{display:none}
+  .control-center .cc-head{align-items:flex-start}
+  .control-center .cc-actions .btn-soft:nth-child(2){display:none}
+}
+
+/* v1.2 evidence analyzer */
+.analyzer-panel{margin-bottom:18px}
+.analyzer-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.analyzer-box{border:1px solid var(--line);border-radius:13px;padding:12px;background:#fbfdff}
+.analyzer-box h4{margin:0 0 5px}
+.analyzer-box textarea{min-height:180px;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+.analyzer-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.boundary-wrap{margin-top:14px;border:1px solid var(--line);border-radius:14px;padding:14px;background:white}
+.boundary-map{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;align-items:stretch}
+.boundary-node{position:relative;border:1px solid var(--line);border-radius:12px;padding:10px 7px;text-align:center;background:#f8fafc;min-height:82px}
+.boundary-node .ico{font-size:18px;display:block;margin-bottom:3px}
+.boundary-node .bn{font-size:11.5px;font-weight:900}
+.boundary-node .bs{font-size:10.5px;color:var(--muted);margin-top:3px}
+.boundary-node.ok{background:var(--green2);border-color:#86efac}
+.boundary-node.badstate{background:var(--red2);border-color:#fca5a5}
+.boundary-node.warnstate{background:var(--amber2);border-color:#fcd34d}
+.boundary-node.unknown{background:#f8fafc}
+.boundary-node.likely{box-shadow:0 0 0 3px rgba(245,158,11,.20);border-color:#f59e0b}
+.boundary-node.likely:after{content:"LIKELY";position:absolute;top:-9px;right:7px;background:#f59e0b;color:#fff;font-size:9px;font-weight:900;padding:2px 5px;border-radius:999px}
+.result-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:12px;margin-top:12px}
+.findings{display:flex;flex-direction:column;gap:7px}
+.finding{border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:12px;line-height:1.4}
+.finding strong{display:block;margin-bottom:2px}
+.finding.goodf{background:var(--green2);border-color:#bbf7d0}
+.finding.badf{background:var(--red2);border-color:#fecaca}
+.finding.warnf{background:var(--amber2);border-color:#fde68a}
+.finding.infof{background:var(--blue2);border-color:#bfdbfe}
+.metric-table{width:100%;border-collapse:collapse;font-size:12px}
+.metric-table th,.metric-table td{border-bottom:1px solid var(--line);padding:7px 6px;text-align:left;vertical-align:top}
+.metric-table th{color:#475569;background:#f8fafc}
+.confidence{display:inline-block;padding:3px 7px;border-radius:999px;font-size:10px;font-weight:900;background:#e2e8f0;color:#334155}
+.next-probe{margin-top:12px}
+.sample-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
+.sample-row button{border:1px solid var(--line);background:white;border-radius:8px;padding:5px 8px;font-size:11px;font-weight:800}
+@media(max-width:950px){.analyzer-grid,.result-grid{grid-template-columns:1fr}.boundary-map{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:620px){.boundary-map{grid-template-columns:repeat(2,1fr)}}
+
+.har-panel{margin-bottom:18px}.har-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.har-card{border:1px solid var(--line);border-radius:13px;padding:12px;background:#fbfdff}.har-card h4{margin:0 0 5px}.har-drop{border:1.5px dashed #94a3b8;border-radius:12px;padding:12px;background:#fff;display:flex;flex-direction:column;gap:8px}.har-meta{font-size:11px;color:var(--muted)}.har-summary{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:10px}.har-stat{border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff;text-align:center}.har-stat .n{font-size:18px;font-weight:900}.har-stat .l{font-size:10px;color:var(--muted);margin-top:2px}.har-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}.har-toolbar select{min-width:150px}.har-events{margin-top:12px;max-height:320px;overflow:auto;border:1px solid var(--line);border-radius:12px}.har-events table{width:100%;border-collapse:collapse;font-size:11px}.har-events th,.har-events td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.har-events th{position:sticky;top:0;background:#f8fafc;z-index:1}.har-events tr:hover{background:#f8fafc}.har-events button{padding:4px 7px;border-radius:7px;border:1px solid var(--line);background:#fff;font-size:10px;font-weight:800}.har-badge{display:inline-block;padding:2px 6px;border-radius:999px;font-size:9px;font-weight:900}.har-badge.good{background:var(--green2);color:#166534}.har-badge.warn{background:var(--amber2);color:#92400e}.har-badge.bad{background:var(--red2);color:#991b1b}.har-context-box{margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}.har-context-box pre{white-space:pre-wrap;word-break:break-word;font-size:11px;line-height:1.4;max-height:220px;overflow:auto}.har-insights{display:flex;flex-direction:column;gap:7px}.har-empty{padding:14px;color:var(--muted);font-size:12px}@media(max-width:980px){.har-grid{grid-template-columns:1fr}.har-summary{grid-template-columns:repeat(3,1fr)}}@media(max-width:620px){.har-summary{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header><div class="header-inner">
+<div class="eyebrow">Local-first troubleshooting workbench</div>
+<h1>WAF Use Case Curl Generator &amp; Investigator</h1>
+<div class="subtitle">Generate safe, copy-ready probes for Linux curl, Windows curl.exe, PowerShell, and native DNS/TCP tools. Separate client→WAF, WAF→origin, direct-origin, DNS/CNAME, API, JWT, caching, rate-limit, bot, and Fog-management paths.</div>
+<div class="badges"><span class="badge">Single HTML file</span><span class="badge">No uploads</span><span class="badge">Copy/paste workflows</span><span class="badge">Good / Bad / Next</span><span class="badge">502 decision path</span><span class="badge">Paste Output Analyzer</span><span class="badge">HAR Context Correlator</span></div>
+</div></header>
+<main>
+<div class="panel" style="margin-bottom:18px">
+<div class="panel-head"><h2>502 / Origin / WAF Fast Triage</h2><div class="hint">Start here before changing policy. One broken hop can masquerade as another.</div></div>
+<div class="panel-body">
+<div class="decision">
+<div class="step"><span class="n">1</span><strong>Public WAF URL</strong><span>Resolve DNS, TLS handshake, headers, status, timings. Does the request reach the WAF edge?</span></div>
+<div class="step"><span class="n">2</span><strong>Origin directly</strong><span>From an authorized network, pin Host/SNI to origin and test HTTP/TLS. This isolates origin health from WAF.</span></div>
+<div class="step"><span class="n">3</span><strong>Origin ACL</strong><span>Confirm only current tenant WAF SaaS source IPs can enter. A blocked SaaS proxy commonly surfaces as 502/504.</span></div>
+<div class="step"><span class="n">4</span><strong>Fog ≠ data path</strong><span>For agents/gateways, verify outbound HTTPS/443 to Fog separately. Fog health does not prove WAF SaaS→origin reachability.</span></div>
+</div>
+<div class="callout warn"><b>Likely 502 families:</b> origin TCP refusal/reset, wrong upstream port, origin TLS/SNI mismatch, untrusted/expired certificate, origin firewall/ACL rejecting the WAF SaaS proxy, DNS resolving the wrong origin, reverse-proxy upstream failure, or an application/backend returning 502 itself. Compare direct-origin and WAF-path results before blaming either side.</div>
+</div>
+</div>
+<div class="control-center" id="controlCenter">
+<div class="cc-head">
+<div class="cc-title-wrap">
+<div class="cc-title">Inputs &amp; Control Center</div>
+<div class="cc-sub">Values stay in this browser tab. Sensitive tokens are never transmitted by this page.</div>
+</div>
+<div class="cc-actions">
+<button class="btn btn-primary" onclick="render()">Regenerate</button>
+<button class="btn btn-soft" id="toggleControlsBtn" onclick="toggleControls()">Collapse</button>
+<button class="btn btn-soft" onclick="resetInputs()">Reset</button>
+</div>
+</div>
+<div class="cc-body">
+<div class="control-grid">
+<div>
+<label>Protected hostname</label>
+<input class="field" id="host" placeholder="www.example.com" value="www.example.com"/>
+</div>
+<div>
+<label>Origin host / IP</label>
+<input class="field" id="origin" placeholder="origin.example.net" value="203.0.113.20"/>
+</div>
+<div>
+<label>Origin port</label>
+<input class="field" id="port" value="443"/>
+</div>
+<div>
+<label>WAF SaaS CNAME target</label>
+<input class="field" id="cname" placeholder="value supplied by WAF profile" value="tenant.example-waf.invalid"/>
+</div>
+<div>
+<label>API path</label>
+<input class="field" id="api" value="/api/v1/health"/>
+</div>
+<div>
+<label>Shell</label>
+<select class="field" id="shell">
+<option value="linux">Linux / macOS curl</option>
+<option value="wincurl">Windows curl.exe</option>
+<option value="powershell">PowerShell native</option>
+</select>
+</div>
+<div>
+<label>Scheme</label>
+<select class="field" id="scheme">
+<option>https</option>
+<option>http</option>
+</select>
+</div>
+<div class="control-inline-actions">
+<button class="btn btn-good" onclick="renderCase(window.activeCase||'waf-health')">Refresh current</button>
+</div>
+<div class="span2">
+<label>JWT / Bearer token</label>
+<textarea class="field" id="jwt" placeholder="Paste only into a trusted local copy.">REPLACE_WITH_TOKEN</textarea>
+</div>
+<div class="span2">
+<label>WAF SaaS source IPs / CIDRs</label>
+<textarea class="field" id="wafips" placeholder="Paste current values from tenant Profile / deployment form, one per line">REPLACE_WITH_CURRENT_TENANT_WAF_IPS</textarea>
+</div>
+<div class="span4 mini-note">
+        TLS tip: avoid <code>-k</code>/<code>--insecure</code> as a default. Use it only as a comparison test when investigating trust, SAN/SNI, expiry, chain, or interception.
+      </div>
+</div>
+</div>
+<div class="jumpbar"><button onclick="document.getElementById('evidenceAnalyzer').scrollIntoView({behavior:'smooth',block:'start'})">Analyze Output</button><button onclick="document.getElementById('harCorrelator').scrollIntoView({behavior:'smooth',block:'start'})">HAR Context</button>
+<button onclick="jumpToCase('waf-health')">WAF Health</button>
+<button onclick="jumpToCase('origin')">Origin Reachable</button>
+<button onclick="jumpToCase('502')">502 / 504</button>
+<button onclick="jumpToCase('cname')">CNAME</button>
+<button onclick="jumpToCase('rate')">Rate Limit</button>
+<button onclick="jumpToCase('cache')">Cache</button>
+<button onclick="jumpToCase('jwt')">JWT</button>
+<button onclick="jumpToCase('bot')">Bot / CAPTCHA</button>
+<button onclick="jumpToCase('owasp')">OWASP</button>
+<button onclick="jumpToCase('api-discovery')">API Discovery</button>
+</div>
+</div><div class="panel analyzer-panel" id="evidenceAnalyzer">
+<div class="panel-head">
+<h2>Paste Output → Analyze Evidence</h2>
+<div class="hint">Paste protected/WAF-path output, direct-origin output, or both. Analysis is deterministic and stays in this page.</div>
+</div>
+<div class="panel-body">
+<div class="callout info"><b>Best results:</b> include headers plus curl timing output when possible. Two paths are stronger than one because the analyzer can classify the point where behavior diverges.</div>
+<div class="analyzer-grid">
+<div class="analyzer-box">
+<h4>Protected / WAF path output</h4>
+<div class="small">Example: curl to <code>https://protected-host/</code></div>
+<textarea class="field" id="wafOutput" placeholder="Paste curl.exe, curl, Invoke-WebRequest, nslookup, Test-NetConnection, or related output here..."></textarea>
+<div class="sample-row">
+<button onclick="loadAnalyzerSample('waf502')">Sample: WAF 502</button>
+<button onclick="loadAnalyzerSample('rate429')">Sample: 429</button>
+<button onclick="loadAnalyzerSample('captcha')">Sample: CAPTCHA</button>
+</div>
+</div>
+<div class="analyzer-box">
+<h4>Direct origin output</h4>
+<div class="small">Example: <code>curl --resolve host:443:origin-ip https://host/</code></div>
+<textarea class="field" id="originOutput" placeholder="Paste the direct-origin comparison output here..."></textarea>
+<div class="sample-row">
+<button onclick="loadAnalyzerSample('origin200')">Sample: Origin 200</button>
+<button onclick="loadAnalyzerSample('origin502')">Sample: Origin 502</button>
+<button onclick="loadAnalyzerSample('tlsfail')">Sample: TLS fail</button>
+</div>
+</div>
+</div>
+<div class="analyzer-actions">
+<button class="btn btn-primary" onclick="analyzeEvidence()">Analyze Evidence</button>
+<button class="btn btn-good" onclick="loadComparisonDemo()">Load 502 vs 200 Demo</button>
+<button class="btn btn-soft" onclick="clearEvidence()">Clear Evidence</button>
+</div>
+<div id="analysisResult">
+<div class="callout violet"><b>Ready.</b> Paste one or both outputs above, then select <b>Analyze Evidence</b>. The map below will classify DNS, TCP, TLS, HTTP/WAF, Origin ACL, Origin, and Backend evidence.</div>
+</div>
+</div>
+</div><div class="panel har-panel" id="harCorrelator"><div class="panel-head"><h2>HAR Context Correlator</h2><div class="hint">Before/After browser evidence, swap roles, focus a side, select an event, and correlate HAR context with CLI evidence.</div></div><div class="panel-body"><div class="callout info"><b>Three sensors, one question:</b> CLI probes show path/network behavior. HAR shows browser-facing request/response behavior. Direct-origin probes provide a control. Together they help answer <b>where is this actually failing?</b></div><div class="har-grid"><div class="har-card"><h4>Before HAR</h4><div class="small">Legacy/origin/baseline browser session.</div><div class="har-drop"><input accept=".har,.json,application/json" id="harBeforeFile" onchange="loadHarFile(event,'before')" type="file"/><div class="har-meta" id="harBeforeMeta">No Before HAR loaded.</div></div></div><div class="har-card"><h4>After HAR</h4><div class="small">WAF-protected/current browser session.</div><div class="har-drop"><input accept=".har,.json,application/json" id="harAfterFile" onchange="loadHarFile(event,'after')" type="file"/><div class="har-meta" id="harAfterMeta">No After HAR loaded.</div></div></div></div><div class="har-toolbar"><button class="btn btn-good" onclick="swapHars()">⇄ Swap Before / After</button><label class="small"><b>Focus</b></label><select class="field" id="harFocus" onchange="renderHarContext()"><option value="compare">Compare</option><option value="after">After</option><option value="before">Before</option></select><button class="btn btn-primary" onclick="analyzeEvidenceWithHar()">Analyze CLI + HAR</button><button class="btn btn-soft" onclick="clearHars()">Clear HARs</button><button class="btn btn-soft" onclick="loadHarDemo()">Load HAR Demo</button></div><div id="harSummaryWrap"><div class="har-empty">Load a HAR file to generate a browser evidence summary and selectable high-signal events.</div></div><div class="har-context-box" id="harSelectedContext" style="display:none"></div></div></div><div class="grid">
+<aside class="panel">
+<div class="panel-head"><h3>Use Cases</h3><div class="hint">Pick an investigation. The sticky control center stays available above while you work.</div></div>
+<div class="panel-body">
+<div class="section-title" style="margin-top:0">Investigation library</div>
+<div class="nav" id="nav"></div>
+</div>
+</aside>
+<section class="panel">
+<div class="panel-head"><h3 id="caseTitle">Use case</h3><div class="hint" id="caseSummary"></div></div>
+<div class="panel-body" id="content"></div>
+</section>
+</div>
+</main>
+<footer>
+Built as a diagnostic aid, not an authorization boundary. Run active security payloads only against systems you own or are explicitly permitted to test. WAF/CDN headers vary by provider; absence of a vendor-specific header is not proof that the WAF was bypassed.
+</footer>
+<script>
+const qs=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const val=id=>qs(id).value.trim();
+const base=()=>`${val('scheme')}://${val('host')}`;
+const shell=()=>val('shell');
+const originURL=()=>`${val('scheme')}://${val('origin')}:${val('port')}`;
+
+function curl(cmd){
+  if(shell()==='wincurl') return 'curl.exe '+cmd;
+  if(shell()==='powershell') return null;
+  return 'curl '+cmd;
+}
+function psHeaders(headers={}){
+  const entries=Object.entries(headers);
+  if(!entries.length) return '';
+  return '$h = @{\\n'+entries.map(([k,v])=>`  "${k}" = "${v}"`).join('\\n')+'\\n}\\n';
+}
+function request({url=base(),method='GET',headers={},data='',extra='-sS -D - -o /dev/null',resolve=''}) {
+  if(shell()==='powershell'){
+    const h=psHeaders(headers);
+    const meth=method!=='GET'?` -Method ${method}`:'';
+    const body=data?` -Body '${data.replace(/'/g,"''")}'`:'';
+    return h+`Invoke-WebRequest -Uri "${url}"${meth}${entries(headers)?' -Headers $h':''}${body} -MaximumRedirection 0 -SkipHttpErrorCheck`;
+  }
+  const hs=Object.entries(headers).map(([k,v])=>`-H "${k}: ${v}"`).join(' ');
+  return `${shell()==='wincurl'?'curl.exe':'curl'} ${extra} ${resolve} -X ${method} ${hs} ${data?`--data '${data}'`:''} "${url}"`.replace(/\\s+/g,' ').trim();
+}
+function entries(o){return Object.keys(o).length>0}
+
+const cases=[
+{cat:'Path isolation',id:'waf-health',title:'Public WAF URL Health',summary:'Prove DNS/TLS/HTTP behavior on the protected hostname and capture timing evidence.'},
+{cat:'Path isolation',id:'origin',title:'Confirm Backend Origin Reachable',summary:'Pin Host/SNI to the origin so you can compare origin health with the WAF path.'},
+{cat:'Path isolation',id:'origin-only-waf',title:'Confirm Origin Accessible Only by WAF IP Proxy',summary:'Validate both sides of the control: WAF path works; direct public origin access is denied.'},
+{cat:'Path isolation',id:'502',title:'502 / 504 Investigator',summary:'Run a compact comparison that helps separate WAF edge, origin TCP/TLS, ACL, and backend failures.'},
+{cat:'Check Point',id:'fog',title:'Agent / Gateway → Fog Connectivity',summary:'Verify management-plane DNS/TCP/TLS/HTTPS separately from WAF SaaS origin traffic.'},
+{cat:'DNS',id:'cname',title:'Confirm WAF SaaS CNAME Status',summary:'Check CNAME chain, A/AAAA answers, and compare expected WAF target with live DNS.'},
+{cat:'Controls',id:'rate',title:'Rate Limiting',summary:'Send controlled repeated requests and watch for 429, Retry-After, vendor headers, or rising latency.'},
+{cat:'Controls',id:'cache',title:'Caching Status',summary:'Repeat identical GETs and compare Age/cache headers and first-byte/total timing.'},
+{cat:'Controls',id:'jwt',title:'Confirm JWT',summary:'Compare missing, valid, and intentionally invalid bearer tokens without exposing token contents in output.'},
+{cat:'Controls',id:'bot',title:'Confirm Bot / CAPTCHA Trigger',summary:'Compare normal browser-like and automation-like requests and inspect challenge/block signals.'},
+{cat:'OWASP validation',id:'owasp',title:'OWASP Top 10 WAF Smoke Tests',summary:'Low-impact authorized probes for common injection/path patterns. Use only on test-authorized targets.'},
+{cat:'API',id:'api-discovery',title:'Discover APIs',summary:'Inventory likely API routes and methods from known public descriptors and passive HTTP metadata.'},
+{cat:'API',id:'third-api',title:'Discover 3rd-Party APIs',summary:'Use response content and browser-exported artifacts to identify externally referenced API hosts.'},
+{cat:'API',id:'api-threat',title:'API Threat Detection',summary:'Exercise harmless schema/method/auth anomalies to validate API visibility and threat telemetry.'}
+];
+
+function copyText(id){
+  navigator.clipboard.writeText(qs(id).innerText).then(()=>{const b=document.querySelector(`[data-copy="${id}"]`); const old=b.textContent;b.textContent='Copied';setTimeout(()=>b.textContent=old,900)});
+}
+function cmdCard(title,cmd,tag='Command'){
+  const id='c'+Math.random().toString(36).slice(2);
+  return `<div class="cmd-card"><div class="cmd-top"><strong>${esc(title)}</strong><button class="copy" data-copy="${id}" onclick="copyText('${id}')">Copy</button></div><pre id="${id}">${esc(cmd)}</pre></div>`;
+}
+function tri(g,b,n){
+return `<div class="interpret"><div class="mini" style="background:var(--green2)"><h4>✓ Good</h4><p>${g}</p></div><div class="mini" style="background:var(--red2)"><h4>✕ Bad / suspicious</h4><p>${b}</p></div><div class="mini" style="background:var(--blue2)"><h4>→ Next</h4><p>${n}</p></div></div>`;
+}
+function headerProbe(url=base()){
+ if(shell()==='powershell') return `$r = Invoke-WebRequest -Uri "${url}" -MaximumRedirection 0 -SkipHttpErrorCheck\\n$r.StatusCode\\n$r.Headers\\n$r.RawContentLength`;
+ return `${shell()==='wincurl'?'curl.exe':'curl'} -sS -o ${shell()==='wincurl'?'NUL':'/dev/null'} -D - -w "\\ncode=%{http_code} remote=%{remote_ip} connect=%{time_connect}s tls=%{time_appconnect}s ttfb=%{time_starttransfer}s total=%{time_total}s\\n" "${url}"`;
+}
+function originProbe(){
+ const h=val('host'),o=val('origin'),p=val('port'),url=`${val('scheme')}://${h}:${p}/`;
+ if(shell()==='powershell'){
+   return `# PowerShell: direct request to origin IP while preserving HTTP Host.\\n# For strict SNI pinning, curl.exe --resolve is usually the clearest Windows test.\\ncurl.exe -sS -D - -o NUL --resolve "${h}:${p}:${o}" "${url}"`;
+ }
+ return `${shell()==='wincurl'?'curl.exe':'curl'} -sS -D - -o ${shell()==='wincurl'?'NUL':'/dev/null'} --resolve "${h}:${p}:${o}" -w "\\ncode=%{http_code} remote=%{remote_ip} tls=%{time_appconnect}s ttfb=%{time_starttransfer}s total=%{time_total}s\\n" "${url}"`;
+}
+function dnsCommands(){
+ const h=val('host'),c=val('cname');
+ if(shell()==='powershell') return `Resolve-DnsName "${h}" -Type CNAME\\nResolve-DnsName "${h}" -Type A\\nResolve-DnsName "${h}" -Type AAAA -ErrorAction SilentlyContinue\\n# Expected WAF CNAME target entered in tool:\\n"${c}"`;
+ if(shell()==='wincurl') return `nslookup -type=CNAME ${h}\\nnslookup ${h}\\nREM Expected WAF CNAME target: ${c}`;
+ return `dig +short CNAME ${h}\\ndig +short A ${h}\\ndig +short AAAA ${h}\\n# Expected WAF CNAME target: ${c}`;
+}
+function renderCase(id){
+ const c=cases.find(x=>x.id===id)||cases[0]; window.activeCase=c.id;
+ document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.id===c.id));
+ qs('caseTitle').textContent=c.title;qs('caseSummary').textContent=c.summary;
+ const H=val('host'), A=val('api')||'/', B=base(), JWT=val('jwt');
+ let out=`<div class="hero-card"><h2>${esc(c.title)}</h2><div class="hint">${esc(c.summary)}</div></div>`;
+ if(c.id==='waf-health'){
+   out+=cmdCard('Protected hostname: headers + timings',headerProbe());
+   out+=cmdCard('DNS / CNAME evidence',dnsCommands());
+   out+=tri('2xx/3xx as expected, TLS validates, remote IP belongs to expected edge/provider, timings are stable.','DNS points somewhere unexpected, TLS fails, connection timeout/refusal, or consistent 5xx before the application can answer.','Save headers and timings, then run Direct Origin. Differences between the two paths are the fastest clue.');
+ } else if(c.id==='origin'){
+   out+=`<div class="callout info"><b>Why <code>--resolve</code> matters:</b> it connects to the origin IP while keeping the protected hostname in the URL, preserving Host and TLS SNI. That avoids the misleading “certificate mismatch” produced by browsing straight to an HTTPS IP.</div>`;
+   out+=cmdCard('Direct origin with correct Host + SNI',originProbe());
+   out+=cmdCard('Origin TCP reachability',shell()==='powershell'?`Test-NetConnection "${val('origin')}" -Port ${val('port')} -InformationLevel Detailed`:(shell()==='wincurl'?`powershell -NoProfile -Command "Test-NetConnection '${val('origin')}' -Port ${val('port')} -InformationLevel Detailed"`:`timeout 5 bash -c '</dev/tcp/${val('origin')}/${val('port')}' && echo TCP_OK || echo TCP_FAILED`));
+   out+=tri('Direct origin returns the expected app response and TLS validates with the real hostname.','Connection refused/timeout/reset, wrong certificate/SAN, handshake failure, or origin itself returns 502/503/504.','If origin is bad directly, fix origin/network first. If origin is good directly but WAF path is bad, focus on SaaS source ACL, upstream configuration, TLS policy, and WAF logs.');
+ } else if(c.id==='origin-only-waf'){
+   out+=`<div class="callout warn"><b>Two-part test:</b> “WAF can reach origin” cannot be proven from an arbitrary client. First confirm the public WAF URL succeeds. Then confirm your origin firewall/server logs show the source is one of the <i>current tenant WAF SaaS IPs</i>. Finally, direct origin access from a non-WAF source should fail.</div>`;
+   out+=cmdCard('A. Through WAF should succeed',headerProbe());
+   out+=cmdCard('B. Direct origin from ordinary client should be denied',originProbe());
+   out+=cmdCard('C. Current allowlist entered for this investigation',val('wafips')||'Paste current tenant WAF SaaS IPs/CIDRs from the Profile/deployment form.');
+   out+=tri('WAF URL works; direct origin is denied from ordinary sources; firewall/access logs show successful origin sessions only from current WAF SaaS source ranges.','Origin is publicly reachable, or WAF requests fail because the SaaS ranges are not allowed / are allowed on the wrong port.','Compare origin firewall logs at the exact request timestamp. Confirm destination NAT, port, listener, security group/ACL and any upstream proxy between WAF and app.');
+ } else if(c.id==='502'){
+   out+=`<div class="callout bad"><b>Do not treat every 502 as “the WAF blocked it.”</b> A WAF proxy can generate a 502 because it cannot complete the upstream transaction; the origin or another reverse proxy can also generate the same status.</div>`;
+   out+=cmdCard('1. WAF path',headerProbe());
+   out+=cmdCard('2. Direct origin comparison',originProbe());
+   out+=cmdCard('3. Origin TCP check',shell()==='powershell'?`Test-NetConnection "${val('origin')}" -Port ${val('port')}`:`${shell()==='wincurl'?'curl.exe':'curl'} -v --connect-timeout 5 --resolve "${H}:${val('port')}:${val('origin')}" "${val('scheme')}://${H}:${val('port')}/"`);
+   out+=`<div class="section-title">Interpret the delta</div>`+
+   `<details open><summary>WAF = 502, direct origin = 200</summary><p class="small">Strongly inspect WAF SaaS source allowlisting, upstream hostname/port, SNI, origin certificate trust, WAF-to-origin DNS, mTLS expectations, and reverse-proxy rules that behave differently by source.</p></details>`+
+   `<details><summary>WAF = 502, direct origin = 502</summary><p class="small">The origin/application or another upstream proxy is already unhealthy. Trace the backend chain and inspect origin logs before changing WAF policy.</p></details>`+
+   `<details><summary>WAF = timeout/504, direct origin = fast 200</summary><p class="small">Look for dropped SaaS proxy traffic, asymmetric routing, network ACLs, wrong upstream address/port, or upstream response timeouts specific to the WAF path.</p></details>`+
+   `<details><summary>Direct origin TLS fails; -k works</summary><p class="small">This points toward certificate trust, expiry, SAN/SNI, incomplete chain, or TLS interception. Fix trust rather than leaving verification disabled.</p></details>`;
+ } else if(c.id==='fog'){
+   const fog='inext-agents.cloud.ngen.checkpoint.com';
+   if(shell()==='powershell'){
+     out+=cmdCard('DNS + TCP 443 to Fog',`Resolve-DnsName "${fog}"\\nTest-NetConnection "${fog}" -Port 443 -InformationLevel Detailed`);
+     out+=cmdCard('HTTPS/TLS to Fog endpoint',`curl.exe -v --connect-timeout 10 "https://${fog}/"`);
+   } else {
+     out+=cmdCard('DNS + HTTPS/TLS to Fog',`${shell()==='wincurl'?'nslookup':'getent hosts'} ${fog}\\n${shell()==='wincurl'?'curl.exe':'curl'} -v --connect-timeout 10 "https://${fog}/"`);
+   }
+   out+=`<div class="callout violet"><b>Management-plane test:</b> Check Point documents agent/gateway communication to Fog over encrypted HTTPS/TLS on TCP/443. The agent uses Fog for registration/policy/config/software updates, logs and learning synchronization. This is separate from WAF SaaS proxy traffic reaching your application origin.</div>`;
+   out+=tri('DNS resolves, TCP/443 connects, TLS negotiation completes. An HTTP status such as 401/403 can still prove network/TLS reachability when the endpoint expects authenticated agent traffic.','DNS failure, TCP timeout/refusal, TLS trust/proxy failure, or outbound security policy blocks 443.','Check egress firewall/proxy, DNS, TLS inspection and the exact regional/public Fog URLs listed for the deployment in the portal.');
+ } else if(c.id==='cname'){
+   out+=cmdCard('Live DNS chain',dnsCommands());
+   out+=cmdCard('HTTP evidence after DNS resolution',headerProbe());
+   out+=tri('CNAME matches the WAF SaaS target generated for the asset/profile; subsequent A/AAAA records resolve; HTTPS reaches the expected protected app.','Old CDN/WAF target remains, CNAME is absent/mismatched, split DNS differs, or NXDOMAIN/SERVFAIL appears.','Check authoritative DNS, TTL, internal vs external resolvers, and propagation before troubleshooting higher layers.');
+ } else if(c.id==='rate'){
+   const url=B+(A.startsWith('/')?A:'/'+A);
+   let cmd;
+   if(shell()==='powershell'){
+     cmd=`1..20 | ForEach-Object {\\n  $sw=[Diagnostics.Stopwatch]::StartNew()\\n  try { $r=Invoke-WebRequest -Uri "${url}" -SkipHttpErrorCheck; $code=$r.StatusCode; $retry=$r.Headers["Retry-After"] } catch { $code="ERR"; $retry="" }\\n  $sw.Stop(); "{0,2} code={1} ms={2} retry-after={3}" -f $_,$code,$sw.ElapsedMilliseconds,$retry\\n}`;
+   }else if(shell()==='wincurl'){
+     cmd=`for /L %i in (1,1,20) do @curl.exe -sS -o NUL -D - -w "request=%i code=%{http_code} total=%{time_total}\\n" "${url}"`;
+   }else{
+     cmd=`for i in $(seq 1 20); do curl -sS -o /dev/null -D /tmp/waf-h.$$ -w "request=$i code=%{http_code} total=%{time_total}s\\n" "${url}"; grep -iE '^(retry-after|x-ratelimit|ratelimit|server):' /tmp/waf-h.$$; done; rm -f /tmp/waf-h.$$`;
+   }
+   out+=`<div class="callout warn"><b>Keep it controlled.</b> Start with 10–20 sequential requests against a harmless endpoint. Do not jump straight to high concurrency on production.</div>`;
+   out+=cmdCard('Controlled rate-limit probe',cmd);
+   out+=tri('Normal responses until the configured threshold, then predictable 429/challenge behavior with Retry-After or related telemetry.','No enforcement when policy should trigger, unexpected 5xx, connection resets, or legitimate low-rate traffic is throttled.','Correlate request timestamps/source identity with WAF logs. Validate whether identity is source IP, XFF, cookie, JWT claim, or another key.');
+ } else if(c.id==='cache'){
+   const url=B+(A.startsWith('/')?A:'/'+A);
+   let cmd;
+   if(shell()==='powershell'){
+     cmd=`1..3 | ForEach-Object { $r=Invoke-WebRequest -Uri "${url}" -SkipHttpErrorCheck; "RUN $_ status=$($r.StatusCode) Age=$($r.Headers["Age"]) Cache=$($r.Headers["X-Cache"])"; Start-Sleep -Seconds 1 }`;
+   } else if(shell()==='wincurl'){
+     cmd=`for /L %i in (1,1,3) do @curl.exe -sS -D - -o NUL -w "run=%i code=%{http_code} ttfb=%{time_starttransfer} total=%{time_total}\\n" "${url}"`;
+   } else {
+     cmd=`for i in 1 2 3; do echo "=== RUN $i ==="; curl -sS -D - -o /dev/null -w "code=%{http_code} ttfb=%{time_starttransfer}s total=%{time_total}s\\n" "${url}" | grep -iE '^(HTTP/|age:|cache-control:|etag:|last-modified:|x-cache:|cf-cache-status:|x-cache-status:|server:|code=|ttfb=)'; sleep 1; done`;
+   }
+   out+=cmdCard('Repeat identical GET',cmd);
+   out+=tri('Second/third request show expected HIT/Age behavior or lower TTFB while respecting Cache-Control.','Dynamic/authenticated data is cached unexpectedly, Age never moves when caching is expected, or cache headers conflict.','Check cache key, query/cookie/header variation, bypass rules, origin Cache-Control, and CDN/WAF cache ownership.');
+ } else if(c.id==='jwt'){
+   const url=B+(A.startsWith('/')?A:'/'+A);
+   let valid,missing,invalid;
+   if(shell()==='powershell'){
+     missing=`Invoke-WebRequest -Uri "${url}" -SkipHttpErrorCheck`;
+     valid=`$h=@{ Authorization="Bearer ${JWT}" }\\nInvoke-WebRequest -Uri "${url}" -Headers $h -SkipHttpErrorCheck`;
+     invalid=`$h=@{ Authorization="Bearer invalid.header.signature" }\\nInvoke-WebRequest -Uri "${url}" -Headers $h -SkipHttpErrorCheck`;
+   } else {
+     const cc=shell()==='wincurl'?'curl.exe':'curl';
+     missing=`${cc} -sS -D - -o ${shell()==='wincurl'?'NUL':'/dev/null'} "${url}"`;
+     valid=`${cc} -sS -D - -o ${shell()==='wincurl'?'NUL':'/dev/null'} -H "Authorization: Bearer ${JWT}" "${url}"`;
+     invalid=`${cc} -sS -D - -o ${shell()==='wincurl'?'NUL':'/dev/null'} -H "Authorization: Bearer invalid.header.signature" "${url}"`;
+   }
+   out+=`<div class="callout bad"><b>Token hygiene:</b> use a short-lived test token. Shell history, screenshots and support bundles can leak bearer tokens. Redact before sharing.</div>`;
+   out+=cmdCard('A. Missing token',missing)+cmdCard('B. Valid test token',valid)+cmdCard('C. Invalid token',invalid);
+   out+=tri('Valid token gets the authorized response; missing/invalid token gets the expected 401/403 or challenge; WAF/API telemetry identifies JWT-based source/auth behavior.','Invalid token is accepted, valid token is rejected, or the WAF and origin disagree about auth state.','Check Authorization forwarding, JWT issuer/audience/expiry/signature settings, clock skew, header normalization and WAF exceptions.');
+ } else if(c.id==='bot'){
+   const url=B+(A.startsWith('/')?A:'/'+A), cc=shell()==='wincurl'?'curl.exe':'curl';
+   let normal,bot;
+   if(shell()==='powershell'){
+     normal=`$h=@{"User-Agent"="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151 Safari/537.36";"Accept"="text/html"}\\nInvoke-WebRequest -Uri "${url}" -Headers $h -SkipHttpErrorCheck`;
+     bot=`$h=@{"User-Agent"="curl-test-bot/1.0";"Accept"="text/html"}\\nInvoke-WebRequest -Uri "${url}" -Headers $h -SkipHttpErrorCheck`;
+   }else{
+     normal=`${cc} -sS -D - -o ${shell()==='wincurl'?'NUL':'/dev/null'} -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151 Safari/537.36" "${url}"`;
+     bot=`${cc} -sS -D - -o ${shell()==='wincurl'?'NUL':'/dev/null'} -A "curl-test-bot/1.0" "${url}"`;
+   }
+   out+=`<div class="callout info"><b>Reality check:</b> sophisticated bot systems use far more than User-Agent. curl may trigger a static bot rule or may simply receive a JavaScript/CAPTCHA challenge it cannot solve. Treat this as an enforcement smoke test, not a complete bot-evasion test.</div>`;
+   out+=cmdCard('Browser-like control',normal)+cmdCard('Automation-like comparison',bot);
+   out+=tri('Configured bot/challenge policy produces a distinct block/challenge/log event for automation while legitimate traffic remains usable.','No event despite an expected policy, or normal users are challenged incorrectly.','Inspect WAF bot event details, source identity, cookies/JS requirements, challenge response/body and policy mode.');
+ } else if(c.id==='owasp'){
+   const target=B+'/__waf_test__', cc=shell()==='wincurl'?'curl.exe':'curl';
+   const payloads=[
+     ['SQL injection-shaped parameter',`?id=1%27%20OR%20%271%27%3D%271`],
+     ['Reflected XSS-shaped parameter',`?q=%3Cscript%3Ealert%281%29%3C%2Fscript%3E`],
+     ['Traversal-shaped path',`/%2e%2e/%2e%2e/etc/passwd`],
+     ['Command-injection-shaped parameter',`?host=127.0.0.1%3Bwhoami`],
+     ['Suspicious template expression',`?name=%7B%7B7*7%7D%7D`]
+   ];
+   out+=`<div class="callout bad"><b>Authorized test only.</b> These are low-impact detection probes intended to exercise WAF inspection, not exploit an application. Prefer a dedicated non-production test route that returns a harmless 404/200 at the origin.</div>`;
+   payloads.forEach(([name,p])=>{
+     let cmd;
+     if(shell()==='powershell') cmd=`Invoke-WebRequest -Uri "${target}${p}" -MaximumRedirection 0 -SkipHttpErrorCheck`;
+     else cmd=`${cc} -sS -D - -o ${shell()==='wincurl'?'NUL':'/dev/null'} "${target}${p}"`;
+     out+=cmdCard(name,cmd);
+   });
+   out+=tri('WAF logs classify the suspicious request and enforce according to policy; origin does not execute anything meaningful on the harmless test route.','Payload reaches a vulnerable real endpoint, unexpected server errors occur, or WAF has no visibility where inspection is expected.','Stop if application behavior is unsafe. Use a controlled test endpoint, correlate event IDs, then tune prevention/exceptions based on false-positive evidence.');
+ } else if(c.id==='api-discovery'){
+   const cc=shell()==='wincurl'?'curl.exe':'curl';
+   const paths=['/openapi.json','/swagger.json','/swagger/v1/swagger.json','/api-docs','/.well-known/openid-configuration','/graphql'];
+   if(shell()==='powershell'){
+     out+=cmdCard('Check common public API descriptors',paths.map(p=>`try { $r=Invoke-WebRequest -Uri "${B+p}" -Method HEAD -SkipHttpErrorCheck; "${p} $($r.StatusCode) $($r.Headers["Content-Type"])" } catch {}`).join('\\n'));
+   }else{
+     out+=cmdCard('Check common public API descriptors',paths.map(p=>`${cc} -sS -o ${shell()==='wincurl'?'NUL':'/dev/null'} -w "${p} code=%{http_code} type=%{content_type}\\n" "${B+p}"`).join('\\n'));
+   }
+   out+=`<div class="callout info"><b>Best evidence source:</b> API discovery is stronger when fed by HAR/OpenAPI/WAF learning data than by guessing paths. Use these requests to verify known descriptors, not to brute-force production.</div>`;
+   out+=tri('Known API descriptors/routes are intentionally exposed or intentionally denied, and WAF/API inventory sees the endpoints/methods.','Unexpected public Swagger/OpenAPI docs, undocumented endpoints, or sensitive metadata becomes exposed.','Compare discovered routes with the application owner’s inventory and WAF API discovery/learning view. Classify shadow, deprecated and unauthenticated APIs.');
+ } else if(c.id==='third-api'){
+   let cmd;
+   if(shell()==='powershell'){
+     cmd=`$html=(Invoke-WebRequest -Uri "${B}" -SkipHttpErrorCheck).Content\\n[regex]::Matches($html,'https?://[A-Za-z0-9._:-]+') | ForEach-Object Value | Sort-Object -Unique`;
+   }else{
+     cmd = shell()==='wincurl' ? `curl.exe -sS "${B}" -o page.html\npowershell -NoProfile -Command "Select-String -Path page.html -Pattern 'https?://[A-Za-z0-9._:-]+' -AllMatches | ForEach-Object { $_.Matches.Value } | Sort-Object -Unique"` : `curl -sS "${B}" | grep -Eo "https?://[A-Za-z0-9._:-]+" | sort -u`;
+   }
+   out+=cmdCard('Extract absolute external hosts referenced by initial HTML',cmd);
+   out+=`<div class="callout violet"><b>For SPAs:</b> the initial HTML often contains only bundle URLs. A browser HAR is the better artifact because it captures runtime XHR/fetch calls to analytics, payment, identity, maps, SaaS APIs and other third parties.</div>`;
+   out+=tri('External API dependencies are known, approved, TLS-protected and represented in architecture/security inventory.','Unknown data destinations, legacy endpoints, direct-to-origin API calls, or third parties receiving sensitive tokens/data.','Export a browser HAR, sort by hostname, review XHR/fetch, Authorization headers and CORS, then decide which flows need WAF/API or browser-side controls.');
+ } else if(c.id==='api-threat'){
+   const url=B+(A.startsWith('/')?A:'/'+A), cc=shell()==='wincurl'?'curl.exe':'curl';
+   let cmds=[];
+   if(shell()==='powershell'){
+     cmds=[
+       ['Unexpected HTTP method',`Invoke-WebRequest -Uri "${url}" -Method TRACE -SkipHttpErrorCheck`],
+       ['Wrong content type',`Invoke-WebRequest -Uri "${url}" -Method POST -ContentType "text/plain" -Body '{"test":true}' -SkipHttpErrorCheck`],
+       ['Extra JSON property',`Invoke-WebRequest -Uri "${url}" -Method POST -ContentType "application/json" -Body '{"expected":"demo","unexpected_field":"waf-test"}' -SkipHttpErrorCheck`]
+     ];
+   }else{
+     cmds=[
+       ['Unexpected HTTP method',`${cc} -sS -D - -o ${shell()==='wincurl'?'NUL':'/dev/null'} -X TRACE "${url}"`],
+       ['Wrong content type',`${cc} -sS -D - -o ${shell()==='wincurl'?'NUL':'/dev/null'} -X POST -H "Content-Type: text/plain" --data '{"test":true}' "${url}"`],
+       ['Extra JSON property',`${cc} -sS -D - -o ${shell()==='wincurl'?'NUL':'/dev/null'} -X POST -H "Content-Type: application/json" --data '{"expected":"demo","unexpected_field":"waf-test"}' "${url}"`]
+     ];
+   }
+   out+=`<div class="callout warn"><b>Schema-safe smoke tests:</b> use a test endpoint designed to tolerate malformed/extra input. The goal is to prove API telemetry, method/schema enforcement and anomaly detection—not to stress or corrupt the backend.</div>`;
+   cmds.forEach(x=>out+=cmdCard(x[0],x[1]));
+   out+=tri('Unexpected methods/types/fields are blocked, logged, or explicitly handled according to API schema/policy.','Unknown methods succeed, malformed bodies reach sensitive handlers, or WAF/API telemetry misses the request.','Compare the enforced schema with OpenAPI and actual app behavior; inspect auth, method, parameter, size, content-type and anomaly events.');
+ }
+ qs('content').innerHTML=out;
+}
+function render(){renderCase(window.activeCase||'waf-health')}
+function resetInputs(){
+ qs('host').value='www.example.com';qs('origin').value='203.0.113.20';qs('port').value='443';qs('cname').value='tenant.example-waf.invalid';qs('api').value='/api/v1/health';qs('jwt').value='REPLACE_WITH_TOKEN';qs('wafips').value='REPLACE_WITH_CURRENT_TENANT_WAF_IPS';render();
+}
+
+
+function parseEvidence(raw){
+  const t=(raw||'').trim();
+  const l=t.toLowerCase();
+  const out={
+    raw:t, present:!!t, status:null, dns:null, tcp:null, tls:null,
+    cache:null, rate:false, captcha:false, wafBlock:false, timeout:false,
+    refused:false, reset:false, remote:null, server:null, ttfb:null,total:null,
+    retryAfter:null, headers:{}, findings:[]
+  };
+  if(!t) return out;
+
+  let m=t.match(/(?:HTTP\/(?:1\.[01]|2|3)\s+|StatusCode\s*[:=]?\s*|code=)(\d{3})/i);
+  if(m) out.status=parseInt(m[1],10);
+  if(!out.status){
+    m=t.match(/\b(?:status|statuscode)\s*[:=]\s*(\d{3})/i);
+    if(m) out.status=parseInt(m[1],10);
+  }
+
+  // DNS
+  if(/could not resolve host|name or service not known|nxdomain|server failed|dns.*failed|non-existent domain/i.test(t)) out.dns=false;
+  else if(/address:|addresses:|name:|canonical name|cname|remote=|remote_ip|trying \d|connected to/i.test(t)) out.dns=true;
+
+  // TCP
+  if(/connection refused|actively refused/i.test(t)){out.tcp=false;out.refused=true;}
+  else if(/connection timed out|connect timeout|timed out|operation timed out/i.test(t)){out.tcp=false;out.timeout=true;}
+  else if(/connection reset|recv failure: connection was reset|reset by peer/i.test(t)){out.tcp=false;out.reset=true;}
+  else if(/connected to|tcp test succeeded\s*:\s*true|tcp.*true|connect=\d|time_connect|remote=/i.test(t)) out.tcp=true;
+
+  // TLS
+  if(/certificate verify failed|ssl certificate problem|unable to get local issuer|self[- ]signed certificate|hostname mismatch|no alternative certificate|schannel.*cert|tls.*alert|handshake failure|ssl_error/i.test(t)) out.tls=false;
+  else if(/ssl connection using|server certificate:|subject:|issuer:|alpn:|tlsv1|time_appconnect|tls=\d/i.test(t)) out.tls=true;
+
+  // Common metadata
+  m=t.match(/(?:remote=|remote_ip[:=]\s*)([0-9a-f:.]+)/i); if(m) out.remote=m[1];
+  m=t.match(/^server:\s*(.+)$/im); if(m) out.server=m[1].trim();
+  m=t.match(/(?:ttfb=|time_starttransfer[:=]?\s*)([\d.]+)/i); if(m) out.ttfb=parseFloat(m[1]);
+  m=t.match(/(?:total=|time_total[:=]?\s*)([\d.]+)/i); if(m) out.total=parseFloat(m[1]);
+  m=t.match(/^retry-after:\s*(.+)$/im); if(m) out.retryAfter=m[1].trim();
+
+  // Cache
+  if(/(?:x-cache|cf-cache-status|x-cache-status|cache-status)\s*:\s*(?:hit|cached)|\bage:\s*[1-9]\d*/i.test(t)) out.cache='HIT';
+  else if(/(?:x-cache|cf-cache-status|x-cache-status|cache-status)\s*:\s*(?:miss|dynamic|bypass|expired)|\bage:\s*0\b/i.test(t)) out.cache='MISS';
+
+  out.rate = out.status===429 || /too many requests|retry-after:|x-ratelimit|ratelimit-limit|rate limit/i.test(t);
+  out.captcha = /captcha|challenge-platform|challenge-form|cf-chl|bot challenge|verify you are human|javascript challenge|managed challenge/i.test(t);
+  out.wafBlock = out.status===403 && /waf|firewall|blocked|access denied|request rejected|incident|reference id|cloudguard|checkpoint|akamai|cloudflare|imperva|f5/i.test(t);
+
+  return out;
+}
+
+function statusClass(v){
+  if(v===true) return ['ok','✓','Good'];
+  if(v===false) return ['badstate','✕','Failed'];
+  return ['unknown','?','Unknown'];
+}
+function nodeHtml(name,state,sub,likely){
+  const s=statusClass(state);
+  return `<div class="boundary-node ${s[0]} ${likely?'likely':''}"><span class="ico">${s[1]}</span><div class="bn">${name}</div><div class="bs">${sub||s[2]}</div></div>`;
+}
+function finding(type,title,text){
+  return `<div class="finding ${type}"><strong>${title}</strong>${text}</div>`;
+}
+function metricRow(k,a,b){
+  return `<tr><td>${esc(k)}</td><td>${esc(a==null?'—':String(a))}</td><td>${esc(b==null?'—':String(b))}</td></tr>`;
+}
+function analyzeEvidence(){
+  const w=parseEvidence(qs('wafOutput').value);
+  const o=parseEvidence(qs('originOutput').value);
+  if(!w.present && !o.present){
+    qs('analysisResult').innerHTML='<div class="callout warn"><b>No evidence yet.</b> Paste protected/WAF-path output, direct-origin output, or both.</div>';
+    return;
+  }
+
+  const findings=[];
+  let likely='unknown', likelyTitle='Insufficient evidence', confidence='Low';
+  let client=true,dns=null,waf=null,tls=null,acl=null,origin=null,backend=null;
+
+  if(w.present){
+    if(w.dns===false){dns=false;likely='dns';likelyTitle='DNS / name resolution';confidence='High';}
+    else if(w.dns===true) dns=true;
+    if(w.tcp===true) client=true;
+    if(w.tls!==null) tls=w.tls;
+    if(w.status!==null) waf=true;
+  }
+
+  if(o.present){
+    if(o.dns===false && dns===null) dns=false;
+    if(o.tls===false && likely==='unknown'){likely='tls';likelyTitle='Origin TLS / SNI / certificate';confidence='High';}
+    if(o.status!==null) origin = o.status < 500;
+  }
+
+  // Strong comparative rules
+  if(w.present && o.present && w.status===502 && o.status && o.status>=200 && o.status<400){
+    likely='acl'; likelyTitle='WAF → Origin boundary'; confidence='High';
+    dns = w.dns===false?false:true; waf=true; tls = w.tls===false?false:true; acl=false; origin=true; backend=true;
+    findings.push(finding('badf','Strong differential: WAF 502 / Origin healthy','The application responds directly but the protected path returns 502. Inspect WAF SaaS source allowlisting, upstream destination/port, WAF-to-origin DNS, TLS trust/SNI, mTLS expectations, and source-sensitive reverse-proxy behavior.'));
+  } else if(w.present && o.present && w.status===504 && o.status && o.status>=200 && o.status<400){
+    likely='acl'; likelyTitle='WAF → Origin network / timeout boundary'; confidence='High';
+    dns=true;waf=true;acl=false;origin=true;backend=true;
+    findings.push(finding('badf','Strong differential: WAF 504 / Origin fast response','The direct path is healthy while the WAF path times out. Dropped proxy traffic, ACL/routing, wrong upstream target, or a WAF-path-specific timeout is likely.'));
+  } else if(w.present && o.present && w.status===502 && o.status===502){
+    likely='backend';likelyTitle='Origin / Backend chain';confidence='High';
+    dns=true;waf=true;acl=true;origin=false;backend=false;
+    findings.push(finding('badf','Same 502 on both paths','The origin path reproduces the failure without the WAF. Investigate reverse proxy, application service, load balancer, and backend dependencies first.'));
+  } else if(w.present && o.present && w.status>=500 && o.status>=500){
+    likely='backend';likelyTitle='Origin / Backend chain';confidence='Medium';
+    origin=false;backend=false;
+  } else if(w.present && w.status===403){
+    likely='waf';likelyTitle=w.wafBlock?'WAF enforcement / policy':'HTTP authorization boundary';confidence=w.wafBlock?'High':'Medium';
+    waf=false;
+    findings.push(finding('warnf','HTTP 403 detected',w.wafBlock?'The output contains WAF/block-oriented signals. Correlate the request timestamp with WAF events and policy mode.':'A 403 is confirmed, but the pasted evidence does not prove whether the WAF or origin generated it.'));
+  } else if(w.present && w.rate){
+    likely='waf';likelyTitle='Rate-limit enforcement';confidence='High';waf=false;
+    findings.push(finding('warnf','Rate-limit signal detected',`HTTP 429 / rate-limit evidence is present${w.retryAfter?' with Retry-After='+w.retryAfter:''}. Validate threshold, identity key, and expected policy telemetry.`));
+  } else if(w.present && w.captcha){
+    likely='waf';likelyTitle='Bot / challenge enforcement';confidence='High';waf=false;
+    findings.push(finding('warnf','CAPTCHA / challenge signal detected','The response contains challenge-oriented markers. curl may not be able to complete a browser JavaScript or CAPTCHA flow; correlate this with bot events.'));
+  } else if(w.present && w.dns===false){
+    likely='dns';likelyTitle='DNS / name resolution';confidence='High';dns=false;
+  } else if(w.present && w.tcp===false){
+    likely='client';likelyTitle='TCP / network reachability';confidence='High';
+  } else if(w.present && w.tls===false){
+    likely='tls';likelyTitle='TLS / certificate / SNI';confidence='High';tls=false;
+  } else if(o.present && o.tcp===false){
+    likely='origin';likelyTitle='Origin TCP / listener / firewall';confidence='High';origin=false;
+  } else if(o.present && o.tls===false){
+    likely='tls';likelyTitle='Origin TLS / certificate / SNI';confidence='High';tls=false;
+  } else if(w.present && w.status && w.status>=500){
+    likely='origin';likelyTitle='Upstream / origin-side failure';confidence='Medium';origin=false;
+  } else if(w.present && w.status && w.status>=200 && w.status<400){
+    likely='none';likelyTitle='No obvious failure in pasted WAF-path evidence';confidence='Medium';
+    dns=dns===null?true:dns;waf=true;tls=tls===null?true:tls;
+  }
+
+  // Supporting findings
+  [ ['Protected/WAF',w], ['Direct origin',o] ].forEach(([label,x])=>{
+    if(!x.present) return;
+    if(x.status!==null) findings.push(finding(x.status>=500?'badf':x.status>=400?'warnf':'goodf',`${label}: HTTP ${x.status}`,x.status<400?'HTTP layer returned a generally successful/redirect response.':'Use the status with path comparison and headers; status alone does not prove which device generated it.'));
+    if(x.dns===false) findings.push(finding('badf',`${label}: DNS failure`,'Name resolution failed before an HTTP transaction could occur.'));
+    if(x.tcp===false) findings.push(finding('badf',`${label}: TCP failure`,x.refused?'Connection was refused: verify listener/port/firewall.':x.timeout?'Connection timed out: investigate routing/ACL/drop behavior.':x.reset?'Connection reset: investigate middlebox/origin reset behavior.':'TCP connectivity failed.'));
+    if(x.tls===false) findings.push(finding('badf',`${label}: TLS failure`,'Certificate validation, SNI, chain, protocol/cipher, or TLS interception should be investigated.'));
+    if(x.cache) findings.push(finding('infof',`${label}: Cache ${x.cache}`,x.cache==='HIT'?'The response contains evidence consistent with a cache hit.':'The response contains evidence consistent with miss/bypass/dynamic behavior.'));
+  });
+
+  if(!findings.length) findings.push(finding('infof','Evidence parsed','No strong failure signature was found. Add headers, verbose TLS output, status and curl timing fields for a stronger classification.'));
+
+  const likelyKey = likely==='client'?'client':likely;
+  const subs={
+    client:'Requester / TCP',dns:'Resolution',waf:'Edge / Policy',tls:'Handshake / SNI',
+    acl:'SaaS source / route',origin:'Listener / web tier',backend:'App / upstream'
+  };
+  const states={
+    client: client,
+    dns:dns,
+    waf:waf,
+    tls:tls,
+    acl:acl,
+    origin:origin,
+    backend:backend
+  };
+
+  // Fill prior nodes green where a later layer is clearly reached
+  if(w.status!==null){states.client=true;if(states.dns===null)states.dns=true;if(states.waf===null)states.waf=true;if(states.tls===null && val('scheme')==='https')states.tls=true;}
+  if(o.status!==null && o.status<500){states.origin=true;states.backend=true;}
+
+  const map=['client','dns','waf','tls','acl','origin','backend'].map(k=>nodeHtml(
+    k==='client'?'CLIENT':k.toUpperCase(),
+    states[k],subs[k],likelyKey===k
+  )).join('');
+
+  let next='Capture more complete verbose output from both paths.';
+  if(likely==='dns') next='Check authoritative DNS/CNAME, resolver differences, and run the CNAME investigation.';
+  if(likely==='client') next='Test TCP reachability to the destination/port and inspect local/network firewall behavior.';
+  if(likely==='waf') next='Correlate timestamp, source identity, URI and response with WAF security/bot/rate-limit events.';
+  if(likely==='tls') next='Compare normal TLS with a diagnostic -k test, then inspect SAN/SNI, expiry, chain and interception.';
+  if(likely==='acl') next='Check origin firewall/access logs for the exact request timestamp and verify current tenant WAF SaaS source ranges, destination NAT, port and listener.';
+  if(likely==='origin') next='Run the direct-origin --resolve probe plus TCP check and inspect origin web/reverse-proxy logs.';
+  if(likely==='backend') next='Trace the origin reverse-proxy/application upstream chain and inspect backend service/load-balancer logs.';
+  if(likely==='none') next='The pasted protected-path output looks healthy. If a user-visible problem remains, compare the failing URI/method/body and application behavior rather than the base health check.';
+
+  const table=`<table class="metric-table"><thead><tr><th>Evidence</th><th>Protected / WAF</th><th>Direct Origin</th></tr></thead><tbody>
+    ${metricRow('HTTP status',w.status,o.status)}
+    ${metricRow('DNS',w.dns===true?'OK':w.dns===false?'FAIL':null,o.dns===true?'OK':o.dns===false?'FAIL':null)}
+    ${metricRow('TCP',w.tcp===true?'OK':w.tcp===false?'FAIL':null,o.tcp===true?'OK':o.tcp===false?'FAIL':null)}
+    ${metricRow('TLS',w.tls===true?'OK':w.tls===false?'FAIL':null,o.tls===true?'OK':o.tls===false?'FAIL':null)}
+    ${metricRow('Cache',w.cache,o.cache)}
+    ${metricRow('TTFB',w.ttfb!=null?w.ttfb+'s':null,o.ttfb!=null?o.ttfb+'s':null)}
+    ${metricRow('Total',w.total!=null?w.total+'s':null,o.total!=null?o.total+'s':null)}
+    ${metricRow('Server',w.server,o.server)}
+  </tbody></table>`;
+
+  qs('analysisResult').innerHTML=`
+    <div class="boundary-wrap">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
+        <div><div class="section-title" style="margin:0 0 3px">Likely Failure Boundary</div>
+        <div style="font-size:20px;font-weight:900">${esc(likelyTitle)}</div></div>
+        <span class="confidence">${esc(confidence)} confidence</span>
+      </div>
+      <div class="boundary-map" style="margin-top:12px">${map}</div>
+      <div class="result-grid">
+        <div><div class="section-title">Evidence & Interpretation</div><div class="findings">${findings.join('')}</div></div>
+        <div><div class="section-title">Parsed Comparison</div>${table}
+          <div class="callout info next-probe"><b>Recommended next move:</b> ${esc(next)}</div>
+        </div>
+      </div>
+    </div>`;
+}
+function clearEvidence(){
+  qs('wafOutput').value='';qs('originOutput').value='';
+  qs('analysisResult').innerHTML='<div class="callout violet"><b>Ready.</b> Paste one or both outputs above, then select <b>Analyze Evidence</b>.</div>';
+}
+function loadAnalyzerSample(which){
+  const samples={
+    waf502:`HTTP/2 502
+server: cloud-waf
+content-type: text/html
+x-request-id: demo-502-a1
+
+code=502 remote=198.51.100.25 connect=0.041s tls=0.092s ttfb=5.014s total=5.015s`,
+    origin200:`HTTP/2 200
+server: nginx
+content-type: text/html
+cache-control: no-cache
+
+code=200 remote=203.0.113.20 connect=0.010s tls=0.048s ttfb=0.122s total=0.124s`,
+    origin502:`HTTP/1.1 502 Bad Gateway
+server: nginx
+code=502 remote=203.0.113.20 connect=0.010s tls=0.048s ttfb=1.202s total=1.203s`,
+    rate429:`HTTP/2 429
+server: cloud-waf
+retry-after: 30
+x-ratelimit-limit: 20
+x-ratelimit-remaining: 0
+code=429 remote=198.51.100.25 total=0.081s`,
+    captcha:`HTTP/2 403
+server: cloud-waf
+content-type: text/html
+x-waf-action: managed-challenge
+
+<html><title>Verify you are human</title><body>CAPTCHA challenge</body></html>`,
+    tlsfail:`* Connected to 203.0.113.20 port 443
+* TLS handshake
+curl: (60) SSL certificate problem: unable to get local issuer certificate`
+  };
+  if(which.startsWith('origin')||which==='tlsfail') qs('originOutput').value=samples[which];
+  else qs('wafOutput').value=samples[which];
+}
+function loadComparisonDemo(){
+  loadAnalyzerSample('waf502');loadAnalyzerSample('origin200');analyzeEvidence();
+}
+
+
+const harState={before:null,after:null,selected:null};
+function hEsc(s){return String(s??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));}
+function hHeaders(a){const o={};(a||[]).forEach(h=>{if(h&&h.name)o[h.name.toLowerCase()]=String(h.value??'')});return o;}
+function parseHar(har,role,name){const entries=har?.log?.entries||[];const p=entries.map((e,idx)=>{const req=e.request||{},res=e.response||{},rh=hHeaders(res.headers),tim=e.timings||{};let u=null;try{u=new URL(req.url)}catch(_){ }const body=String(res.content?.text||'');const blob=(body+' '+Object.entries(rh).map(([k,v])=>k+':'+v).join(' ')).toLowerCase();const status=Number(res.status||0);return{idx,role,method:req.method||'',url:req.url||'',host:u?.host||'',path:u?(u.pathname+u.search):req.url||'',status,statusText:res.statusText||'',time:Number(e.time||0),wait:Number(tim.wait||0),resHeaders:rh,body,server:rh.server||'',age:rh.age||'',retryAfter:rh['retry-after']||'',cacheHit:/(x-cache|cf-cache-status|cache-status).*hit/.test(blob)||Number(rh.age||0)>0,cacheMiss:/(x-cache|cf-cache-status|cache-status).*(miss|dynamic|bypass|expired)/.test(blob)||rh.age==='0',rate:status===429||!!rh['retry-after']||Object.keys(rh).some(k=>/ratelimit|rate-limit/.test(k)),captcha:/captcha|verify you are human|challenge-platform|managed challenge|cf-chl|javascript challenge|bot challenge/.test(blob),waf403:status===403&&/waf|firewall|blocked|access denied|request rejected|incident|reference id|cloudguard|checkpoint|akamai|cloudflare|imperva|f5|challenge/.test(blob)};});const c=n=>p.filter(x=>x.status===n).length;return{role,name,entries:p,summary:{total:p.length,e403:c(403),e429:c(429),e502:c(502),e504:c(504),f5xx:p.filter(x=>x.status>=500).length,slow:p.filter(x=>x.time>1500).length,cacheHit:p.filter(x=>x.cacheHit).length,cacheMiss:p.filter(x=>x.cacheMiss).length,captcha:p.filter(x=>x.captcha).length,waf403:p.filter(x=>x.waf403).length,api:p.filter(x=>/\/api\/|application\/json|graphql|openapi|swagger/i.test(x.path)).length,hosts:new Set(p.map(x=>x.host).filter(Boolean)).size}};}
+function loadHarFile(ev,role){const f=ev.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{harState[role]=parseHar(JSON.parse(r.result),role,f.name);harState.selected=null;renderHarContext()}catch(e){alert('Could not parse '+role+' HAR: '+e.message)}};r.readAsText(f);}
+function hStat(n,l){return `<div class="har-stat"><div class="n">${n}</div><div class="l">${hEsc(l)}</div></div>`}
+function renderHarCard(h,label){if(!h)return'';const s=h.summary;return `<div class="har-card"><h4>${label}: ${hEsc(h.name)}</h4><div class="har-summary">${hStat(s.total,'Requests')}${hStat(s.e403,'403')}${hStat(s.e429,'429')}${hStat(s.e502,'502')}${hStat(s.e504,'504')}${hStat(s.slow,'Slow >1.5s')}${hStat(s.cacheHit,'Cache HIT')}${hStat(s.cacheMiss,'Cache MISS')}${hStat(s.captcha,'Bot/CAPTCHA')}${hStat(s.api,'API-like')}${hStat(s.f5xx,'All 5xx')}${hStat(s.hosts,'Hosts')}</div></div>`}
+function hSeverity(e){return e.status>=500||e.waf403?'bad':(e.status>=400||e.rate||e.captcha||e.time>2000?'warn':'good')}
+function renderHarTable(h,title){if(!h)return'';const arr=h.entries.filter(e=>e.status>=400||e.time>1500||e.cacheHit||e.cacheMiss||e.captcha||e.rate).sort((a,b)=>(b.status>=500)-(a.status>=500)||b.time-a.time).slice(0,80);if(!arr.length)return `<div class="har-card"><h4>${hEsc(title)}</h4><div class="har-empty">No high-signal events detected.</div></div>`;return `<div class="har-card"><h4>${hEsc(title)}</h4><div class="har-events"><table><thead><tr><th></th><th>Status</th><th>Method</th><th>Request</th><th>Time</th><th>Signals</th></tr></thead><tbody>${arr.map(e=>`<tr><td><button onclick="selectHarEvent('${e.role}',${e.idx})">Use</button></td><td><span class="har-badge ${hSeverity(e)}">${e.status||'—'}</span></td><td>${hEsc(e.method)}</td><td title="${hEsc(e.url)}">${hEsc((e.host||'')+(e.path||'')).slice(0,100)}</td><td>${Math.round(e.time)} ms</td><td>${hEsc([e.waf403?'WAF403':'',e.rate?'RATE':'',e.captcha?'BOT':'',e.cacheHit?'HIT':'',e.cacheMiss?'MISS':'',e.time>1500?'SLOW':''].filter(Boolean).join(', ')||'—')}</td></tr>`).join('')}</tbody></table></div></div>`}
+function harDeltas(b,a){const x=[];if(b&&a){if(a.summary.e502>b.summary.e502)x.push(finding('badf','502 increased after protection',`Before=${b.summary.e502}, After=${a.summary.e502}. Correlate with direct-origin health and WAF-to-origin settings.`));if(a.summary.e504>b.summary.e504)x.push(finding('badf','504 increased after protection',`Before=${b.summary.e504}, After=${a.summary.e504}. Investigate path-specific drops, ACL/routing, target/port or timeout differences.`));if(a.summary.e403>b.summary.e403)x.push(finding('warnf','403 increased after protection',`Before=${b.summary.e403}, After=${a.summary.e403}. Check WAF policy, bot controls and request normalization.`));if(a.summary.e429>b.summary.e429)x.push(finding('warnf','429 increased after protection',`Before=${b.summary.e429}, After=${a.summary.e429}. Validate rate policy and identity calculation.`));if(a.summary.captcha>b.summary.captcha)x.push(finding('warnf','Bot/CAPTCHA signals appeared after protection',`Before=${b.summary.captcha}, After=${a.summary.captcha}.`));if(!x.length)x.push(finding('goodf','No obvious headline regression','Error counts do not show a strong before/after regression; inspect selected requests, timings, redirects and headers.'))}return x}
+function renderHarContext(){const b=harState.before,a=harState.after,f=qs('harFocus').value;qs('harBeforeMeta').textContent=b?`${b.name} · ${b.summary.total} entries`:'No Before HAR loaded.';qs('harAfterMeta').textContent=a?`${a.name} · ${a.summary.total} entries`:'No After HAR loaded.';if(!b&&!a){qs('harSummaryWrap').innerHTML='<div class="har-empty">Load a HAR file to generate a browser evidence summary and selectable high-signal events.</div>';qs('harSelectedContext').style.display='none';return}let s='';if(f==='compare'){s=`<div class="har-grid">${renderHarCard(b,'Before')}${renderHarCard(a,'After')}</div>`;const d=harDeltas(b,a);if(d.length)s+=`<div class="har-context-box"><div class="section-title">Before / After Findings</div><div class="har-insights">${d.join('')}</div></div>`;s+=`<div class="har-grid">${renderHarTable(b,'Before high-signal events')}${renderHarTable(a,'After high-signal events')}</div>`}else{const h=f==='before'?b:a;s=renderHarCard(h,f==='before'?'Before':'After')+renderHarTable(h,(f==='before'?'Before':'After')+' high-signal events')}qs('harSummaryWrap').innerHTML=s;renderSelectedHarContext();}
+function selectHarEvent(role,idx){const e=harState[role]?.entries.find(x=>x.idx===idx);if(!e)return;harState.selected={role,idx};renderSelectedHarContext();qs('harSelectedContext').scrollIntoView({behavior:'smooth',block:'nearest'});}
+function renderSelectedHarContext(){const box=qs('harSelectedContext');if(!harState.selected){box.style.display='none';return}const e=harState[harState.selected.role]?.entries.find(x=>x.idx===harState.selected.idx);if(!e){box.style.display='none';return}const hdr=Object.entries(e.resHeaders).slice(0,30).map(([k,v])=>`${k}: ${v}`).join('\n');box.style.display='block';box.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><div><div class="section-title" style="margin:0">Selected HAR Context</div><div style="font-weight:900">${hEsc(e.role.toUpperCase())} · HTTP ${e.status||'—'} · ${hEsc(e.method)} ${hEsc(e.host+e.path)}</div><div class="small">${Math.round(e.time)} ms</div></div><button class="btn btn-primary" onclick="injectSelectedHarIntoAnalyzer()">Use Selected Event in Analyzer</button></div><pre>${hEsc(`URL: ${e.url}\nStatus: ${e.status} ${e.statusText}\nTime: ${Math.round(e.time)} ms\nWait: ${Math.round(e.wait)} ms\nServer: ${e.server||'—'}\nAge: ${e.age||'—'}\nRetry-After: ${e.retryAfter||'—'}\n\nResponse headers:\n${hdr}`)}</pre>`}
+function injectSelectedHarIntoAnalyzer(){if(!harState.selected)return;const e=harState[harState.selected.role]?.entries.find(x=>x.idx===harState.selected.idx);if(!e)return;const syn=[`HTTP/1.1 ${e.status} ${e.statusText||''}`,...Object.entries(e.resHeaders).map(([k,v])=>`${k}: ${v}`),'',`HAR_URL=${e.url}`,`HAR_TIME=${(e.time/1000).toFixed(3)}s`,`HAR_WAIT=${(e.wait/1000).toFixed(3)}s`,e.body.slice(0,1500)].join('\n');if(e.role==='after')qs('wafOutput').value=syn;else qs('originOutput').value=syn;document.getElementById('evidenceAnalyzer').scrollIntoView({behavior:'smooth',block:'start'});analyzeEvidence();}
+function swapHars(){[harState.before,harState.after]=[harState.after,harState.before];if(harState.before){harState.before.role='before';harState.before.entries.forEach(e=>e.role='before')}if(harState.after){harState.after.role='after';harState.after.entries.forEach(e=>e.role='after')}harState.selected=null;renderHarContext();}
+function clearHars(){harState.before=null;harState.after=null;harState.selected=null;qs('harBeforeFile').value='';qs('harAfterFile').value='';renderHarContext();}
+function analyzeEvidenceWithHar(){analyzeEvidence();if(!harState.before&&!harState.after)return;const d=harDeltas(harState.before,harState.after);qs('analysisResult').insertAdjacentHTML('beforeend',`<div class="har-context-box"><div class="section-title">HAR Correlation Context</div><div class="har-insights">${d.length?d.join(''):finding('infof','HAR loaded','HAR context is available; select a high-signal event for request-level correlation.')}</div><div class="callout info" style="margin-top:10px"><b>Evidence boundary:</b> HAR strengthens conclusions about browser-facing status, redirects, headers, timing, caching, API calls and challenges. It cannot independently prove WAF SaaS → origin routing, source allowlisting, private TLS trust or backend logs.</div></div>`);}
+function loadHarDemo(){const mk=(status,time,server,path,body='')=>({startedDateTime:'2026-08-30T18:00:00Z',time,request:{method:'GET',url:'https://app.example.com'+path,headers:[]},response:{status,statusText:status===200?'OK':'Bad Gateway',headers:[{name:'server',value:server},{name:'content-type',value:path.includes('/api/')?'application/json':'text/html'}],content:{mimeType:'text/html',text:body}},timings:{wait:Math.max(1,time-100),connect:20,ssl:50}});harState.before=parseHar({log:{entries:[mk(200,118,'nginx','/'),mk(200,155,'nginx','/api/profile')]}},'before','demo-before.har');harState.after=parseHar({log:{entries:[mk(502,5015,'cloud-waf','/','upstream unavailable'),mk(502,5088,'cloud-waf','/api/profile','upstream unavailable')]}},'after','demo-after.har');harState.selected=null;renderHarContext();}
+
+function toggleControls(){
+  const cc=qs('controlCenter');
+  const btn=qs('toggleControlsBtn');
+  const collapsed=cc.classList.toggle('collapsed');
+  btn.textContent=collapsed?'Expand':'Collapse';
+  try{localStorage.setItem('wafInvestigatorControlsCollapsed', collapsed?'1':'0')}catch(e){}
+}
+function jumpToCase(id){
+  renderCase(id);
+  const target=document.querySelector('.grid');
+  if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+(function init(){
+ let current='';
+ cases.forEach(c=>{
+   if(c.cat!==current){current=c.cat; const d=document.createElement('div');d.className='cat';d.textContent=current;qs('nav').appendChild(d)}
+   const b=document.createElement('button');b.textContent=c.title;b.dataset.id=c.id;b.onclick=()=>renderCase(c.id);qs('nav').appendChild(b)
+ });
+ ['host','origin','port','cname','api','jwt','wafips','shell','scheme'].forEach(id=>qs(id).addEventListener('change',render));
+ renderCase('waf-health');
+ try{
+   if(localStorage.getItem('wafInvestigatorControlsCollapsed')==='1'){
+     qs('controlCenter').classList.add('collapsed');
+     qs('toggleControlsBtn').textContent='Expand';
+   }
+ }catch(e){}
+})();
+</script>
+</body>
+</html>
