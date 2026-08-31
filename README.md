@@ -1,3 +1,4 @@
+<img width="1920" height="3607" alt="wafbuddy_v1_dashboard" src="https://github.com/user-attachments/assets/574317ef-87ba-4292-bd4e-54f1b42775cd" />
 # WAF Use Case Curl Generator & Investigator
 
 > A local-first, single-file WAF troubleshooting workbench for answering
